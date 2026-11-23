@@ -23,7 +23,7 @@ export default function History() {
     return [...m.entries()];
   }, [workouts]);
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="stagger mx-auto max-w-2xl space-y-4">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training")}>
           <ArrowLeft />
@@ -91,7 +91,7 @@ export function WorkoutDetail({ id }: { id: string }) {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="stagger mx-auto max-w-2xl space-y-4">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training/history")}>
           <ArrowLeft />

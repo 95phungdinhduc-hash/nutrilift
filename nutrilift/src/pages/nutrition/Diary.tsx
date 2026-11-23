@@ -186,7 +186,7 @@ export default function Diary() {
   const total = sumNutrients(logs.map((l) => l.n));
 
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <div className="flex items-center justify-between gap-2">
         <IconButton label="Ngày trước" onClick={() => setDate(addDays(date, -1))}>
           <ChevronLeft />
@@ -202,7 +202,7 @@ export default function Diary() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-3">
+        <div className="stagger space-y-3">
           {MEALS.map((m) => (
             <MealSection key={m.id} meal={m} date={date} logs={logs.filter((l) => l.meal === m.id)} onEdit={setEditing} />
           ))}
@@ -237,7 +237,7 @@ export default function Diary() {
             )}
           </Card>
         </div>
-        <div className="space-y-3">
+        <div className="stagger space-y-3">
           {targets && <CaloriesSummary logs={logs} targets={targets} compact />}
           <WaterTracker date={date} goalMl={goals.waterMl} />
           {logs.length > 0 && (

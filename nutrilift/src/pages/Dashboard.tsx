@@ -79,7 +79,7 @@ function WorkoutCard() {
           <Dumbbell size={18} className="shrink-0 text-train" />
           <span className="truncate">Buổi tiếp theo: {day.name}</span>
         </div>
-        <Badge color="train">{program.name}</Badge>
+        <Badge color="train" className="hidden sm:inline-flex">{program.name}</Badge>
       </div>
       <ul className="mb-3 space-y-0.5 text-sm text-muted">
         {day.exercises.slice(0, 6).map((e, i) => (
@@ -238,22 +238,27 @@ export default function Dashboard() {
   const goals = useGoals();
   const { profile } = useProfile();
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <div>
-        <div className="text-sm text-muted">{formatDate(today(), { weekday: true, year: true })}</div>
-        <h1 className="text-2xl font-extrabold">
+        <div className="text-sm font-medium text-muted">{formatDate(today(), { weekday: true, year: true })}</div>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-tight lg:text-[34px]">
           {greeting()}
-          {profile?.name ? `, ${profile.name}` : ""} 👋
+          {profile?.name ? (
+            <>
+              , <span className="text-gradient">{profile.name}</span>
+            </>
+          ) : null}{" "}
+          <span className="inline-block origin-[70%_70%] animate-[wave_2.2s_ease-in-out_1]">👋</span>
         </h1>
       </div>
       <WeeklyCheckIn />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="space-y-4">
+        <div className="stagger space-y-4">
           <PhaseCard />
           {targets && <CaloriesSummary logs={logs} targets={targets} onAdd={() => navigate(`/nutrition/add?d=${date}`)} />}
           <WaterTracker date={date} goalMl={goals.waterMl} />
         </div>
-        <div className="space-y-4">
+        <div className="stagger space-y-4">
           <WorkoutCard />
           <WeightCard />
           <WeekSummary />

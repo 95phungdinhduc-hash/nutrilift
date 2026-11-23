@@ -44,7 +44,7 @@ function WeightTab() {
   const ratePct = cur && s.n >= 3 ? ((s.slope * 7) / cur) * 100 : undefined;
 
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <Card>
         <div className="flex flex-wrap items-end gap-2">
           <TextField className="w-40" type="date" label="Ngày" value={date} max={t} onChange={(e) => setDate(e.target.value || t)} />
@@ -154,7 +154,7 @@ function MeasureTab() {
   const [metric, setMetric] = useState<keyof Measurement>("waistCm");
   const navy = profile ? navyBodyFat(profile.sex, profile.heightCm, m as Measurement) : undefined;
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <Card className="space-y-3">
         <div className="font-semibold">Số đo hôm nay (cm)</div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -219,7 +219,7 @@ function StrengthTab() {
   const top = useMemo(() => topExercises(workouts, 8), [workouts]);
   if (!top.length) return <Empty title="Chưa có dữ liệu tập luyện" desc="Hoàn thành vài buổi tập để xem tiến bộ sức mạnh." />;
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       {phase && (
         <Card>
           <SectionTitle>Sức mạnh từ đầu giai đoạn ({PHASE_INFO[phase.type].label})</SectionTitle>
@@ -290,7 +290,7 @@ function NutritionTab() {
   const hit = targets ? logged.filter((d) => Math.abs(d.kcal - targets.baseKcal) <= targets.baseKcal * 0.1).length : 0;
   const pHit = targets ? logged.filter((d) => d.p >= targets.protein * 0.9).length : 0;
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <WeeklyCheckIn force />
       <Card>
         <div className="mb-3 flex items-center justify-between">
@@ -368,7 +368,7 @@ function PhaseTab() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       {cur && (
         <Card>
           <div className="mb-2 flex items-center justify-between">
@@ -494,7 +494,7 @@ export default function Progress() {
   const { query } = useLocation();
   const tab = (query.get("tab") as Tab) || "weight";
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="stagger mx-auto max-w-3xl space-y-4">
       <h1 className="text-2xl font-extrabold">Tiến độ</h1>
       <div className="scrollbar-none -mx-4 overflow-x-auto px-4">
         <Segmented

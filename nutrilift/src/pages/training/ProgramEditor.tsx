@@ -82,7 +82,7 @@ export default function ProgramEditor({ id }: { id: string }) {
   const isActive = active?.id === program.id;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="stagger mx-auto max-w-3xl space-y-4">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training/programs")}>
           <ArrowLeft />

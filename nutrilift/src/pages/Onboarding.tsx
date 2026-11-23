@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, Check, Cloud, Dumbbell, Flame, Scale, Sprout } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Button, Card, cx, NumberField, Segmented } from "../components/ui";
 import { DEFAULT_GOALS, setKV } from "../db/db";
@@ -85,24 +86,45 @@ export default function Onboarding() {
         <span className="text-lg font-extrabold">NutriLift</span>
         <div className="ml-auto flex gap-1">
           {steps.map((s, i) => (
-            <div key={s} className={cx("h-1.5 w-6 rounded-full", i <= step ? "bg-accent" : "bg-surface-3")} />
+            <motion.div
+              key={s}
+              className={cx("h-1.5 rounded-full", i <= step ? "bg-gradient-accent" : "bg-surface-3")}
+              animate={{ width: i === step ? 28 : 12 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
           ))}
         </div>
       </div>
 
-      <div className="flex-1">
+      <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={step}
+        className="flex-1"
+        initial={{ opacity: 0, x: 28, filter: "blur(4px)" }}
+        animate={{ opacity: 1, x: 0, filter: "blur(0px)", transitionEnd: { filter: "none", transform: "none" } }}
+        exit={{ opacity: 0, x: -28, filter: "blur(4px)" }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      >
         {step === 0 && (
           <div className="space-y-5 pt-4">
-            <h1 className="text-3xl leading-tight font-extrabold">
+            <motion.img
+              src="./favicon.svg"
+              alt=""
+              className="animate-float h-16 w-16 drop-shadow-[0_12px_24px_rgba(16,185,129,0.35)]"
+              initial={{ scale: 0.5, rotate: -20, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 16 }}
+            />
+            <h1 className="text-[34px] leading-[1.1] font-extrabold tracking-tight">
               Ăn đúng. Tập đúng.
               <br />
-              <span className="text-accent-ink">Theo dõi trong một app.</span>
+              <span className="text-gradient">Theo dõi trong một app.</span>
             </h1>
             <p className="text-muted">
               NutriLift kết hợp nhật ký dinh dưỡng (từ OpenNutriTracker) và trình theo dõi tập tạ với chương trình tự tăng tạ (từ Liftosaur) — giúp
               bạn cutting giữ cơ, rồi bulking tăng cơ hiệu quả.
             </p>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="stagger grid grid-cols-1 gap-3">
               {[
                 { icon: <Flame className="text-fat" />, t: "Calo & macro theo giai đoạn", d: "Cutting / duy trì / bulking, TDEE tự hiệu chỉnh theo cân nặng thực tế." },
                 { icon: <Dumbbell className="text-train" />, t: "Chương trình tập tự tăng tạ", d: "Linear/double progression, đồng hồ nghỉ, tính bánh tạ, kỷ lục cá nhân." },
@@ -298,7 +320,8 @@ export default function Onboarding() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
+      </AnimatePresence>
 
       <div className="sticky bottom-0 flex gap-2 bg-bg pt-4 pb-safe">
         {step > 0 && (

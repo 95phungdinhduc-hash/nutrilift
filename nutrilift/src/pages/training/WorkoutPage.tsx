@@ -1,5 +1,7 @@
 import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronLeft, Info, MoreVertical, Plus, Repeat, StickyNote, Trash2, Trophy, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
+import { confetti } from "../../lib/confetti";
 import { ExercisePicker } from "../../components/ExercisePicker";
 import { Badge, Button, Card, cx, IconButton, NumberField, Sheet, Toggle, toast } from "../../components/ui";
 import type { Workout, WorkoutExercise, WorkoutSet } from "../../db/types";
@@ -77,16 +79,33 @@ function SetRow({
           suffix={s.amrap ? "+" : s.minReps ? `/${s.reps}` : "rep"}
         />
       </div>
-      <button
+      <motion.button
         onClick={onToggle}
         aria-label={s.done ? "Bỏ hoàn thành" : "Hoàn thành set"}
+        whileTap={{ scale: 0.86 }}
+        animate={s.done ? { scale: [1, 1.18, 1] } : { scale: 1 }}
+        transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
         className={cx(
-          "flex h-10 w-12 items-center justify-center rounded-xl transition active:scale-95",
-          s.done ? (hitTarget ? "bg-accent text-white dark:text-slate-950" : "bg-carbs text-white") : "bg-surface-2 text-muted hover:bg-surface-3"
+          "relative flex h-10 w-12 items-center justify-center rounded-xl transition-colors duration-300",
+          s.done
+            ? hitTarget
+              ? "bg-gradient-accent text-white shadow-[0_6px_16px_-6px_var(--accent)] dark:text-slate-950"
+              : "bg-carbs text-white shadow-[0_6px_16px_-6px_var(--carbs)]"
+            : "bg-surface-2 text-muted ring-1 ring-line ring-inset hover:bg-surface-3"
         )}
       >
-        <Check size={22} strokeWidth={3} />
-      </button>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={s.done ? "on" : "off"}
+            initial={{ scale: 0.3, rotate: -30, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            exit={{ scale: 0.3, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 600, damping: 22 }}
+          >
+            <Check size={22} strokeWidth={3} />
+          </motion.span>
+        </AnimatePresence>
+      </motion.button>
       {(s.rpe != null || s.label) && (
         <div className="col-span-4 -mt-1 flex items-center gap-2 pl-11 text-[11px] text-muted">
           {s.label && <span>{s.label}</span>}
@@ -328,7 +347,7 @@ function FinishSheet({ open, onClose, workout, onDone }: { open: boolean; onClos
         </Button>
       }
     >
-      <div className="space-y-3">
+      <div className="stagger space-y-3">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl bg-surface-2 p-2">
             <div className="tabular text-lg font-bold">{formatDuration((Date.now() - workout.startedAt) / 1000)}</div>
@@ -355,6 +374,11 @@ function FinishSheet({ open, onClose, workout, onDone }: { open: boolean; onClos
 }
 
 function ResultSheet({ result, onClose }: { result: FinishResult | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!result) return;
+    confetti({ count: result.prs.length ? 220 : 140 });
+    if (result.prs.length) setTimeout(() => confetti({ count: 120, origin: { x: 0.2, y: 0.5 } }), 350);
+  }, [result]);
   if (!result) return null;
   return (
     <Sheet

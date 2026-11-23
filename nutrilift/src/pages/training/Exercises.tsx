@@ -19,7 +19,7 @@ export default function Exercises() {
   const [creating, setCreating] = useState(false);
   const custom = useLiveQuery(async () => alive(await db.exercises.toArray()), []) ?? [];
   return (
-    <div className="mx-auto max-w-2xl space-y-3">
+    <div className="stagger mx-auto max-w-2xl space-y-3">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training")}>
           <ArrowLeft />
@@ -51,7 +51,7 @@ export function ExerciseDetail({ id }: { id: string }) {
   const best = hist.length ? hist.reduce((a, b) => (b.e1rm > a.e1rm ? b : a)) : undefined;
   const maxW = hist.length ? Math.max(...hist.map((h) => h.maxWeight)) : undefined;
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="stagger mx-auto max-w-2xl space-y-4">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training/exercises")}>
           <ArrowLeft />

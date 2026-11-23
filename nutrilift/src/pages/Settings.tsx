@@ -56,7 +56,7 @@ function GoalsSection() {
   const targets = useTargets(date);
   const save = (patch: Partial<Goals>) => setKV("goals", { ...g, ...patch });
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       {targets && (
         <Card className="bg-surface-2">
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
@@ -235,7 +235,7 @@ function SyncSection() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <Card className="space-y-2 text-sm">
         <div className="font-semibold">Dùng trên điện thoại + máy tính qua Internet</div>
         <p className="text-muted">
@@ -454,7 +454,7 @@ function DataSection() {
   const s = useSettings();
   const saveS = (patch: Partial<Settings>) => setKV("settings", { ...s, ...patch });
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <Card className="space-y-3">
         <SectionTitle>Sao lưu</SectionTitle>
         <p className="text-sm text-muted">Xuất toàn bộ dữ liệu ra file JSON để lưu trữ hoặc chuyển sang thiết bị khác khi không dùng đồng bộ đám mây.</p>
@@ -560,7 +560,7 @@ export default function SettingsPage() {
   const { profile } = useProfile();
   const tab = (query.get("tab") as Tab) || (profile ? "profile" : "sync");
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="stagger mx-auto max-w-2xl space-y-4">
       <h1 className="text-2xl font-extrabold">Cài đặt</h1>
       {!profile && (
         <Card className="text-sm">

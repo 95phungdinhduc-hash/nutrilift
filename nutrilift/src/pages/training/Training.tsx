@@ -37,7 +37,7 @@ export default function Training() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="stagger space-y-4">
       <h1 className="text-2xl font-extrabold">Tập luyện</h1>
       {active && (
         <Card className="border-train/50 bg-train-soft/50">
@@ -54,7 +54,7 @@ export default function Training() {
         </Card>
       )}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-4">
+        <div className="stagger space-y-4">
           {program && parsed ? (
             <Card>
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -123,7 +123,7 @@ export default function Training() {
             ))}
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="stagger space-y-4">
           <Card>
             <SectionTitle>Số set mỗi nhóm cơ — tuần này</SectionTitle>
             {thisWeek.length === 0 ? (

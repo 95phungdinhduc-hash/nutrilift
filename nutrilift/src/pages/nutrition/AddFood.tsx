@@ -154,7 +154,7 @@ export default function AddFood() {
   const listForTab: Food[] = tab === "recent" ? recent : tab === "fav" ? favs : tab === "mine" ? mine : VN_FOODS.filter((f) => f.category === vnCat);
 
   return (
-    <div className="space-y-3">
+    <div className="stagger space-y-3">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/nutrition")}>
           <ArrowLeft />

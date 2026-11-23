@@ -8,22 +8,22 @@ import { addDays, diffDays, formatDate, today } from "../lib/date";
 import { fmt } from "../lib/format";
 import { useGoals, usePhases, useProfile, useWater, useWeights } from "../lib/hooks";
 import { activePhase, adaptiveTdee, phaseDailyDelta, referenceWeight, sumNutrients, tdeeFormula, type DayTargets } from "../nutrition/calc";
-import { Badge, Button, Card, MacroBar, ProgressRing, toast } from "./ui";
+import { AnimatedNumber, Badge, Button, Card, MacroBar, ProgressRing, toast } from "./ui";
 
 export function CaloriesSummary({ logs, targets, compact, onAdd }: { logs: FoodLog[]; targets: DayTargets; compact?: boolean; onAdd?: () => void }) {
   const total = sumNutrients(logs.map((l) => l.n));
   const remaining = targets.kcal - total.kcal;
   return (
-    <Card>
+    <Card className="ring-gradient overflow-hidden">
       <div className="flex items-center gap-4">
-        <ProgressRing value={total.kcal} max={targets.kcal} size={compact ? 108 : 124}>
-          <div className="tabular text-2xl leading-none font-extrabold">{fmt(Math.abs(remaining))}</div>
-          <div className="mt-0.5 text-[11px] text-muted">{remaining >= 0 ? "kcal còn lại" : "kcal vượt"}</div>
+        <ProgressRing value={total.kcal} max={targets.kcal} size={compact ? 112 : 132} stroke={compact ? 11 : 12}>
+          <AnimatedNumber value={Math.abs(remaining)} className="tabular text-[26px] leading-none font-extrabold tracking-tight" />
+          <div className="mt-1 text-[11px] font-medium text-muted">{remaining >= 0 ? "kcal còn lại" : "kcal vượt"}</div>
         </ProgressRing>
         <div className="min-w-0 flex-1 space-y-2.5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <span>
-              Đã ăn <b className="tabular">{fmt(total.kcal)}</b>
+              Đã ăn <AnimatedNumber value={total.kcal} className="tabular font-bold" />
             </span>
             <span className="text-muted">
               Mục tiêu <b className="tabular text-ink">{fmt(targets.kcal)}</b>
@@ -72,7 +72,12 @@ export function WaterTracker({ date, goalMl }: { date: string; goalMl: number })
       </div>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {Array.from({ length: cups }).map((_, i) => (
-          <div key={i} className={`h-6 w-5 rounded-b-md border-2 ${i < filled ? "border-protein bg-protein/70" : "border-line"}`} />
+          <div key={i} className="relative h-7 w-5 overflow-hidden rounded-b-lg border-2 border-protein/40">
+            <div
+              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-protein to-protein/50 transition-all duration-700 ease-out"
+              style={{ height: i < filled ? "100%" : "0%", transitionDelay: `${i * 40}ms` }}
+            />
+          </div>
         ))}
       </div>
       <div className="flex gap-2">

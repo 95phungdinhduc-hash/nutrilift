@@ -29,7 +29,7 @@ export default function Programs() {
   const parsedPaste = pasteText.trim() ? parseProgram(pasteText) : undefined;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="stagger mx-auto max-w-3xl space-y-5">
       <div className="flex items-center gap-2">
         <IconButton label="Quay lại" onClick={() => goBack("/training")}>
           <ArrowLeft />

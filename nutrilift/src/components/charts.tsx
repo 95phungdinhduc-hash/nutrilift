@@ -105,13 +105,31 @@ export function LineChart({
             />
           </g>
         )}
-        {series.map((s) => {
+        {series.map((s, si) => {
           const pts = s.points.map((p) => [sx(xIndex.get(p.x)!), sy(p.y)] as const);
           const style = s.style ?? "line";
+          const gid = `area-${si}-${s.name.length}`;
           return (
             <g key={s.name}>
+              {(style === "line" || style === "both") && pts.length > 1 && !s.dashed && (
+                <>
+                  <defs>
+                    <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={s.color} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <polygon
+                    className="chart-area"
+                    points={`${pts[0][0]},${H - padB} ${pts.map((p) => p.join(",")).join(" ")} ${pts[pts.length - 1][0]},${H - padB}`}
+                    fill={`url(#${gid})`}
+                  />
+                </>
+              )}
               {(style === "line" || style === "both") && pts.length > 1 && (
                 <polyline
+                  className={s.dashed ? undefined : "chart-line"}
+                  pathLength={1}
                   points={pts.map((p) => p.join(",")).join(" ")}
                   fill="none"
                   stroke={s.color}
@@ -171,7 +189,14 @@ export function BarChart({
           <div key={d.x} className="flex min-w-0 flex-1 flex-col items-center gap-1" title={`${formatDate(d.x)}: ${fmt(d.y)}${unit}`}>
             <div className="relative flex w-full flex-1 items-end justify-center">
               {target != null && <div className="absolute inset-x-0 border-t border-dashed border-muted/60" style={{ bottom: (target / max) * (height - 22) }} />}
-              <div className="w-full max-w-7 rounded-t-md transition-all" style={{ height: Math.max(2, h), background: d.y === 0 ? "var(--surface-3)" : over ? "var(--carbs)" : color }} />
+              <div
+                className="chart-bar w-full max-w-7 rounded-t-lg"
+                style={{
+                  height: Math.max(2, h),
+                  background: d.y === 0 ? "var(--surface-3)" : over ? "linear-gradient(180deg, var(--carbs), color-mix(in srgb, var(--carbs) 60%, transparent))" : `linear-gradient(180deg, ${color}, color-mix(in srgb, ${color} 55%, transparent))`,
+                  animationDelay: `${Math.min(20, data.indexOf(d)) * 25}ms`,
+                }}
+              />
             </div>
             <div className="w-full truncate text-center text-[10px] text-muted">{d.label ?? formatDate(d.x)}</div>
           </div>
