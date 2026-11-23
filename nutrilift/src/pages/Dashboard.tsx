@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { LineChart } from "../components/charts";
 import { Badge, Button, Card, NumberField, SectionTitle, Stat } from "../components/ui";
 import { CaloriesSummary, quickLogWeight, usePhaseProgress, useTodayWorkoutDone, WaterTracker, WeeklyCheckIn } from "../components/widgets";
+import { HeroStats, MuscleWeekCard, TipCard, WeekCaloriesCard } from "../components/dashboardExtras";
 import { startProgramWorkout } from "../lib/actions";
 import { addDays, formatDate, formatDuration, startOfWeek, today } from "../lib/date";
 import { fmt } from "../lib/format";
@@ -262,17 +263,30 @@ export default function Dashboard() {
           </span>
         </h1>
       </div>
+      <HeroStats />
       <WeeklyCheckIn />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <div className="stagger space-y-4">
           <PhaseCard />
           {targets && <CaloriesSummary logs={logs} targets={targets} onAdd={() => navigate(`/nutrition/add?d=${date}`)} />}
           <WaterTracker date={date} goalMl={goals.waterMl} />
+          <div className="2xl:hidden">
+            <TipCard />
+          </div>
         </div>
         <div className="stagger space-y-4">
           <WorkoutCard />
           <WeightCard />
           <WeekSummary />
+          <div className="space-y-4 2xl:hidden">
+            <WeekCaloriesCard />
+            <MuscleWeekCard />
+          </div>
+        </div>
+        <div className="stagger hidden space-y-4 2xl:block">
+          <TipCard />
+          <WeekCaloriesCard />
+          <MuscleWeekCard />
         </div>
       </div>
     </div>

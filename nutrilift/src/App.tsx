@@ -269,7 +269,7 @@ export default function App() {
             </div>
           </header>
         )}
-        <main className={cx("mx-auto w-full max-w-5xl px-4 pt-4 lg:px-8 lg:pt-8", fullScreen ? "pb-40" : "pb-36 lg:pb-12")}>
+        <main className={cx("mx-auto w-full max-w-5xl px-4 pt-4 lg:px-8 lg:pt-8 2xl:max-w-[1500px]", fullScreen ? "pb-40" : "pb-36 lg:pb-12")}>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
               key={loc.path}
@@ -321,12 +321,36 @@ export default function App() {
   );
 }
 
+const STARS = Array.from({ length: 38 }, (_, i) => {
+  // vị trí giả ngẫu nhiên nhưng cố định giữa các lần render
+  const r = (n: number) => ((Math.sin(i * 127.1 + n * 311.7) * 43758.5453) % 1 + 1) % 1;
+  return {
+    left: `${r(1) * 100}%`,
+    top: `${30 + r(2) * 70}%`,
+    d: `${3 + r(3) * 4}s`,
+    r: `${22 + r(4) * 30}s`,
+    delay: `${-r(5) * 30}s`,
+    size: r(6) > 0.8 ? 3 : 2,
+  };
+});
+
 function Aurora() {
   return (
     <div className="aurora" aria-hidden>
       <span />
       <span />
       <span />
+      <span />
+      <div className="grid-lines" />
+      <div className="floor-glow" />
+      <div className="stars">
+        {STARS.map((s, i) => (
+          <i
+            key={i}
+            style={{ left: s.left, top: s.top, width: s.size, height: s.size, ["--d" as string]: s.d, ["--r" as string]: s.r, ["--delay" as string]: s.delay }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
