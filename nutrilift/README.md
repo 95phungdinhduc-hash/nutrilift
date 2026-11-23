@@ -19,6 +19,7 @@ chạy trên **điện thoại và máy tính**, đồng bộ qua Internet (khô
 - Nhật ký 4 bữa (sáng/trưa/tối/ăn vặt), nước uống, vận động (MET theo Compendium — như ONT).
 - Tìm món: **CSDL ~150 món ăn & thực phẩm Việt Nam ngoại tuyến** (phở, bún bò, cơm tấm, bánh mì…), tìm không dấu;
   **Open Food Facts** và **USDA FoodData Central** trực tuyến; **quét mã vạch** bằng camera (BarcodeDetector / ZXing).
+- **📷 Chụp món ăn bằng AI (Gemini)**: nhận diện từng món, ước tính gam & calo, ghép với CSDL món Việt, sửa trước khi lưu.
 - Món tự tạo, **công thức** (tính dinh dưỡng mỗi phần), món yêu thích, món gần đây, chép bữa từ hôm qua, nhập nhanh kcal/macro.
 - Công thức TDEE: Mifflin-St Jeor, IOM 2005 (giống ONT), Katch-McArdle (khi biết % mỡ).
 

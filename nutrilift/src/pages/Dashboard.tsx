@@ -268,7 +268,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <div className="stagger space-y-4">
           <PhaseCard />
-          {targets && <CaloriesSummary logs={logs} targets={targets} onAdd={() => navigate(`/nutrition/add?d=${date}`)} />}
+          {targets && <CaloriesSummary logs={logs} targets={targets} onAdd={() => navigate(`/nutrition/add?d=${date}`)} onPhoto={() => navigate(`/nutrition/add?d=${date}&photo=1`)} />}
           <WaterTracker date={date} goalMl={goals.waterMl} />
           <div className="2xl:hidden">
             <TipCard />

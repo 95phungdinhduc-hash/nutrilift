@@ -74,6 +74,8 @@ export interface Settings {
   keepAwake: boolean;
   fdcApiKey?: string;
   onlineSources: { off: boolean; fdc: boolean };
+  /** Nhận diện món ăn bằng ảnh (Gemini). Khoá API lưu riêng trên thiết bị, không đồng bộ. */
+  ai?: { mode: "key" | "supabase"; model?: string };
 }
 
 // ---------- Cân nặng & số đo ----------
@@ -114,7 +116,7 @@ export interface Serving {
   grams: number;
 }
 
-export type FoodSource = "custom" | "recipe" | "off" | "fdc" | "vn" | "quick";
+export type FoodSource = "custom" | "recipe" | "off" | "fdc" | "vn" | "quick" | "ai";
 
 export interface RecipeItem {
   name: string;

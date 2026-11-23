@@ -72,6 +72,38 @@ Quét mã vạch cần cho phép camera (chỉ hoạt động qua HTTPS — GitH
 
 ---
 
+## AI chụp món ăn (Gemini)
+
+Chụp ảnh đĩa ăn → Gemini nhận diện từng món, ước tính khối lượng và calo → bạn xem lại, sửa gam → lưu.
+Món nào khớp cơ sở dữ liệu món Việt sẽ dùng số liệu của CSDL (ổn định hơn), món lạ dùng số liệu AI.
+
+> ⚠️ Gói **Gemini Plus / Google AI Pro** (app Gemini) **không** dùng được cho việc này. Cần **Gemini API key** —
+> tạo **miễn phí** bằng chính tài khoản Google đó, không cần thẻ.
+
+**Lấy khoá:** mở [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → **Create API key** → sao chép (dạng `AIza...`).
+
+**Cách 1 — đơn giản (khoá lưu trên từng thiết bị):**
+App → **Cài đặt → Dữ liệu & khác → AI nhận diện món ăn** → chọn *Khoá trên thiết bị này* → dán khoá → **Kiểm tra**.
+Làm lại trên điện thoại và máy tính (khoá không đồng bộ, không lên GitHub).
+
+**Cách 2 — an toàn hơn (khoá nằm trên Supabase, mọi thiết bị dùng chung):**
+1. Supabase Dashboard → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+2. Đặt tên **`food-vision`**, xoá code mẫu, dán toàn bộ nội dung file
+   [`supabase/functions/food-vision/index.ts`](supabase/functions/food-vision/index.ts) → **Deploy function**.
+3. **Edge Functions → Secrets** (hoặc *Project Settings → Edge Functions*) → **Add new secret**:
+   Name `GEMINI_API_KEY`, Value = khoá `AIza...` → **Save**.
+4. Trong app: **Cài đặt → AI nhận diện món ăn** → chọn *Qua Supabase* → **Kiểm tra**. (Cần đã đăng nhập đồng bộ.)
+
+**Dùng:** *Tổng quan → nút 📷 cạnh "Thêm món ăn"*, hoặc *Dinh dưỡng → Thêm → Chụp món (AI)*.
+Mẹo chụp: từ trên xuống, đủ sáng, thấy cả bát/đĩa (để AI ước lượng kích thước); có thể ghi thêm mô tả
+("cơm nửa chén, ăn hết") hoặc **chỉ mô tả bằng chữ** không cần ảnh.
+
+Độ chính xác: nhận diện món tốt; khối lượng có thể lệch ±20–30% — khi cutting chặt hãy cân các món chính.
+Gói miễn phí của Gemini API có giới hạn số lượt mỗi phút/ngày (đủ cho cá nhân); nếu báo "hết hạn mức", đợi vài phút.
+Ảnh được gửi tới Google để phân tích và không được lưu trong app.
+
+---
+
 ## Dùng hằng ngày khi đang CUTTING
 
 1. **Sáng**: cân sau khi đi vệ sinh, trước khi ăn → nhập ở Tổng quan. (App dùng *đường xu hướng*, dao động nước 1–2 kg không ảnh hưởng.)

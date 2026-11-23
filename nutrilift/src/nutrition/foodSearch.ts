@@ -10,6 +10,7 @@ export const SOURCE_LABELS: Record<Food["source"], string> = {
   off: "Open Food Facts",
   fdc: "USDA",
   quick: "Nhập nhanh",
+  ai: "AI ảnh",
 };
 
 /** Tìm kiếm ngoại tuyến: món tự tạo + công thức + CSDL món Việt. */

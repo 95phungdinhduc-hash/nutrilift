@@ -1,4 +1,4 @@
-import { CheckCircle2, CloudUpload, Download, ExternalLink, LogIn, LogOut, RefreshCw, Upload } from "lucide-react";
+import { CheckCircle2, CloudUpload, Download, ExternalLink, LogIn, LogOut, RefreshCw, Sparkles, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, cx, NumberField, Segmented, Select, SectionTitle, TextField, Toggle, toast } from "../components/ui";
 import { alive, db, DEFAULT_GOALS, DEFAULT_PROFILE, putMany, setKV } from "../db/db";
@@ -6,6 +6,7 @@ import type { BmrFormula, Goals, Profile, Settings } from "../db/types";
 import { deleteAllData } from "../lib/actions";
 import { formatTime } from "../lib/date";
 import { withCircleTransition } from "../lib/fx";
+import { analyzeFood, getGeminiKey, setGeminiKey } from "../nutrition/foodVision";
 import type { AccentName } from "../db/types";
 import { fmt } from "../lib/format";
 import { useGoals, useProfile, useSettings, useTargets, useToday } from "../lib/hooks";
@@ -381,6 +382,83 @@ function SyncSection() {
   );
 }
 
+function AiSection() {
+  const s = useSettings();
+  const ai = s.ai ?? { mode: "key" as const };
+  const [key, setKey] = useState(getGeminiKey());
+  const [model, setModel] = useState(ai.model ?? "");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const saveAi = (patch: Partial<NonNullable<typeof s.ai>>) => setKV("settings", { ...s, ai: { ...ai, ...patch } });
+  return (
+    <Card className="space-y-3">
+      <SectionTitle>AI nhận diện món ăn (Gemini)</SectionTitle>
+      <p className="text-sm text-muted">
+        Chụp ảnh đĩa ăn → Gemini nhận diện món và ước tính khối lượng, calo. Cần khoá <b>Gemini API</b> miễn phí — gói Gemini Plus/Google AI Pro trên app Gemini{" "}
+        <b>không</b> dùng được cho mục này.
+      </p>
+      <Segmented
+        size="sm"
+        value={ai.mode}
+        onChange={(v) => saveAi({ mode: v })}
+        options={[
+          { value: "key", label: "Khoá trên thiết bị này" },
+          { value: "supabase", label: "Qua Supabase (an toàn hơn)" },
+        ]}
+      />
+      {ai.mode === "key" ? (
+        <>
+          <TextField
+            label="Gemini API key"
+            hint={
+              <a className="text-accent-ink" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">
+                lấy miễn phí tại AI Studio ↗
+              </a>
+            }
+            type="password"
+            autoComplete="off"
+            placeholder="AIza..."
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            onBlur={() => setGeminiKey(key)}
+          />
+          <p className="text-xs text-muted">Khoá chỉ lưu trên thiết bị này (không đồng bộ, không lên GitHub). Nhập riêng trên điện thoại và máy tính.</p>
+        </>
+      ) : (
+        <p className="text-xs text-muted">
+          Khoá nằm trong Secrets của Supabase, dùng chung cho mọi thiết bị đã đăng nhập. Cần cài hàm <code>food-vision</code> một lần — xem mục “AI chụp món ăn” trong HUONG_DAN.md.
+        </p>
+      )}
+      <TextField label="Model" hint="để trống = gemini-flash-latest" placeholder="gemini-flash-latest" value={model} onChange={(e) => setModel(e.target.value)} onBlur={() => saveAi({ model: model.trim() || undefined })} />
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={busy}
+          icon={<Sparkles size={16} />}
+          onClick={async () => {
+            setGeminiKey(key);
+            setBusy(true);
+            setMsg(null);
+            try {
+              const r = await analyzeFood({ text: "1 tô phở bò tái và 1 ly trà đá" }, { mode: ai.mode, model: model.trim() || undefined });
+              const kcal = r.items.reduce((a, i) => a + i.kcal, 0);
+              setMsg({ ok: true, text: `Hoạt động tốt ✓ — thử "1 tô phở bò": ${r.items.map((i) => i.name).join(", ")} ≈ ${Math.round(kcal)} kcal` });
+            } catch (e: any) {
+              setMsg({ ok: false, text: e?.message ?? String(e) });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? "Đang thử…" : "Kiểm tra"}
+        </Button>
+      </div>
+      {msg && <div className={cx("rounded-xl p-2.5 text-sm", msg.ok ? "bg-accent-soft text-accent-ink" : "bg-danger/10 text-danger")}>{msg.text}</div>}
+    </Card>
+  );
+}
+
 function ImportSection() {
   const liftoRef = useRef<HTMLInputElement>(null);
   const ontRef = useRef<HTMLInputElement>(null);
@@ -506,6 +584,7 @@ function DataSection() {
           </Button>
         </div>
       </Card>
+      <AiSection />
       <ImportSection />
       <Card className="space-y-2">
         <SectionTitle>Nguồn thực phẩm trực tuyến</SectionTitle>

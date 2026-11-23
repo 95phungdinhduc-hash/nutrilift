@@ -1,8 +1,9 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, Barcode, ChefHat, Heart, History, Loader2, PencilLine, Plus, Search, WifiOff, Zap } from "lucide-react";
+import { ArrowLeft, Barcode, Camera, ChefHat, Heart, History, Loader2, PencilLine, Plus, Search, WifiOff, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarcodeScanner } from "../../components/BarcodeScanner";
 import { FoodAmountSheet } from "../../components/FoodAmountSheet";
+import { PhotoFoodSheet } from "../../components/PhotoFoodSheet";
 import { Badge, Button, cx, IconButton, NumberField, Segmented, Sheet, TextField, toast } from "../../components/ui";
 import { alive, db } from "../../db/db";
 import type { Food, MealType } from "../../db/types";
@@ -96,6 +97,7 @@ export default function AddFood() {
   const [selected, setSelected] = useState<Food | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(query.get("photo") === "1");
   const [added, setAdded] = useState(0);
   const settings = useSettings();
   const online = useOnline();
@@ -182,6 +184,9 @@ export default function AddFood() {
         />
       </div>
       <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4">
+        <Button size="sm" className="shrink-0" icon={<Camera size={16} />} onClick={() => setPhotoOpen(true)}>
+          Chụp món (AI)
+        </Button>
         <Button size="sm" variant="secondary" className="shrink-0" icon={<Barcode size={16} />} onClick={() => setScanOpen(true)}>
           Quét mã vạch
         </Button>
@@ -280,6 +285,7 @@ export default function AddFood() {
           setAdded((n) => n + 1);
         }}
       />
+      <PhotoFoodSheet open={photoOpen} onClose={() => setPhotoOpen(false)} date={date} meal={meal} onLogged={(n) => setAdded((x) => x + n)} />
       <BarcodeScanner open={scanOpen} onClose={() => setScanOpen(false)} onDetected={onDetected} />
       <QuickAddSheet
         open={quickOpen}

@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { Droplets, Dumbbell, Plus, Sparkles, Undo2 } from "lucide-react";
+import { Camera, Droplets, Dumbbell, Plus, Sparkles, Undo2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { alive, db, getMeta, put, remove, setKV, setMeta } from "../db/db";
 import type { FoodLog, Goals } from "../db/types";
@@ -12,7 +12,7 @@ import { celebrateOnce } from "../lib/fx";
 import { useEffect } from "react";
 import { AnimatedNumber, Badge, Button, Card, MacroBar, ProgressRing, toast } from "./ui";
 
-export function CaloriesSummary({ logs, targets, compact, onAdd }: { logs: FoodLog[]; targets: DayTargets; compact?: boolean; onAdd?: () => void }) {
+export function CaloriesSummary({ logs, targets, compact, onAdd, onPhoto }: { logs: FoodLog[]; targets: DayTargets; compact?: boolean; onAdd?: () => void; onPhoto?: () => void }) {
   const total = sumNutrients(logs.map((l) => l.n));
   const remaining = targets.kcal - total.kcal;
   const proteinHit = targets.protein > 0 && total.protein >= targets.protein;
@@ -58,9 +58,16 @@ export function CaloriesSummary({ logs, targets, compact, onAdd }: { logs: FoodL
         </div>
       )}
       {onAdd && (
-        <Button className="mt-3 w-full" onClick={onAdd} icon={<Plus size={18} />}>
-          Thêm món ăn
-        </Button>
+        <div className="mt-3 flex gap-2">
+          <Button className="flex-1" onClick={onAdd} icon={<Plus size={18} />}>
+            Thêm món ăn
+          </Button>
+          {onPhoto && (
+            <Button variant="secondary" onClick={onPhoto} icon={<Camera size={18} />} aria-label="Chụp món ăn bằng AI">
+              <span className="hidden sm:inline">Chụp món</span>
+            </Button>
+          )}
+        </div>
       )}
     </Card>
   );
