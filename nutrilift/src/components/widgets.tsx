@@ -8,18 +8,30 @@ import { addDays, diffDays, formatDate, today } from "../lib/date";
 import { fmt } from "../lib/format";
 import { useGoals, usePhases, useProfile, useWater, useWeights } from "../lib/hooks";
 import { activePhase, adaptiveTdee, phaseDailyDelta, referenceWeight, sumNutrients, tdeeFormula, type DayTargets } from "../nutrition/calc";
+import { celebrateOnce } from "../lib/fx";
+import { useEffect } from "react";
 import { AnimatedNumber, Badge, Button, Card, MacroBar, ProgressRing, toast } from "./ui";
 
 export function CaloriesSummary({ logs, targets, compact, onAdd }: { logs: FoodLog[]; targets: DayTargets; compact?: boolean; onAdd?: () => void }) {
   const total = sumNutrients(logs.map((l) => l.n));
   const remaining = targets.kcal - total.kcal;
+  const proteinHit = targets.protein > 0 && total.protein >= targets.protein;
+  const logDate = logs[0]?.date;
+  useEffect(() => {
+    if (proteinHit && logDate === today()) {
+      if (celebrateOnce(`protein-${logDate}`, { count: 120, origin: { x: 0.5, y: 0.3 } })) toast("Đạt mục tiêu protein hôm nay! 💪");
+    }
+  }, [proteinHit, logDate]);
   return (
-    <Card className="ring-gradient overflow-hidden">
-      <div className="flex items-center gap-4">
+    <Card className="tilt ring-gradient overflow-hidden">
+      <div className="relative flex items-center gap-4">
+        <div className="relative">
+        <div className="halo" />
         <ProgressRing value={total.kcal} max={targets.kcal} size={compact ? 112 : 132} stroke={compact ? 11 : 12}>
           <AnimatedNumber value={Math.abs(remaining)} className="tabular text-[26px] leading-none font-extrabold tracking-tight" />
           <div className="mt-1 text-[11px] font-medium text-muted">{remaining >= 0 ? "kcal còn lại" : "kcal vượt"}</div>
         </ProgressRing>
+        </div>
         <div className="min-w-0 flex-1 space-y-2.5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <span>
@@ -72,10 +84,13 @@ export function WaterTracker({ date, goalMl }: { date: string; goalMl: number })
       </div>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {Array.from({ length: cups }).map((_, i) => (
-          <div key={i} className="relative h-7 w-5 overflow-hidden rounded-b-lg border-2 border-protein/40">
+          <div key={i} className="relative h-8 w-6 overflow-hidden rounded-b-xl rounded-t-sm border-2 border-protein/35 bg-protein/5">
             <div
-              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-protein to-protein/50 transition-all duration-700 ease-out"
-              style={{ height: i < filled ? "100%" : "0%", transitionDelay: `${i * 40}ms` }}
+              className="liquid"
+              style={{
+                height: i < filled ? "88%" : i === filled ? `${((total % 250) / 250) * 88}%` : "0%",
+                transitionDelay: `${i * 45}ms`,
+              }}
             />
           </div>
         ))}
@@ -148,7 +163,7 @@ export function WeeklyCheckIn({ force }: { force?: boolean }) {
   };
 
   return (
-    <Card className="border-accent/40 bg-accent-soft/40">
+    <Card className="border-glow bg-accent-soft/40">
       <div className="mb-2 flex items-center gap-2 font-semibold">
         <Sparkles size={18} className="text-accent-ink" /> Kiểm tra hằng tuần
       </div>

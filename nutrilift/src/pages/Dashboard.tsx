@@ -73,7 +73,7 @@ function WorkoutCard() {
   const idx = program.nextDay % parsed.days.length;
   const day = parsed.days[idx];
   return (
-    <Card>
+    <Card className="tilt border-glow border-glow-train">
       <div className="mb-1 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2 font-semibold">
           <Dumbbell size={18} className="shrink-0 text-train" />
@@ -241,14 +241,25 @@ export default function Dashboard() {
     <div className="stagger space-y-4">
       <div>
         <div className="text-sm font-medium text-muted">{formatDate(today(), { weekday: true, year: true })}</div>
-        <h1 className="text-[28px] leading-tight font-extrabold tracking-tight lg:text-[34px]">
-          {greeting()}
+        <h1 className="word-reveal text-[28px] leading-tight font-extrabold tracking-tight lg:text-[34px]">
+          {greeting()
+            .split(" ")
+            .map((w, i) => (
+              <span key={i} style={{ animationDelay: `${i * 90}ms` }}>
+                {w}&nbsp;
+              </span>
+            ))}
           {profile?.name ? (
             <>
-              , <span className="text-gradient">{profile.name}</span>
+              <span style={{ animationDelay: "200ms" }}>,&nbsp;</span>
+              <span className="text-gradient" style={{ animationDelay: "260ms" }}>
+                {profile.name}&nbsp;
+              </span>
             </>
-          ) : null}{" "}
-          <span className="inline-block origin-[70%_70%] animate-[wave_2.2s_ease-in-out_1]">👋</span>
+          ) : null}
+          <span className="origin-[70%_70%]" style={{ animation: "word-in 0.7s 0.3s cubic-bezier(0.16,1,0.3,1) both, wave 2.2s 0.9s ease-in-out 1" }}>
+            👋
+          </span>
         </h1>
       </div>
       <WeeklyCheckIn />

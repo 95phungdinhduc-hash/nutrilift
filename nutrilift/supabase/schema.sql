@@ -57,6 +57,8 @@ create policy "nl_records_delete_own" on public.nl_records
 
 grant usage on sequence public.nl_rev_seq to authenticated;
 grant select, insert, update, delete on public.nl_records to authenticated;
+-- Cho phép app kiểm tra kết nối trước khi đăng nhập (RLS vẫn chặn: khách không thấy dòng nào).
+grant select on public.nl_records to anon;
 
 -- (Tuỳ chọn) Realtime: thiết bị khác nhận thay đổi gần như tức thì.
 do $$

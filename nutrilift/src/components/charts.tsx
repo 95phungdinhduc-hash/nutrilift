@@ -147,6 +147,20 @@ export function LineChart({
         })}
         {hover != null && <line x1={sx(hover)} x2={sx(hover)} y1={padT} y2={H - padB} stroke="var(--muted)" strokeWidth={1} vectorEffect="non-scaling-stroke" opacity={0.5} />}
       </svg>
+      {(() => {
+        // Chấm sáng nhịp đập ở điểm mới nhất của đường chính (HTML để không bị méo theo tỉ lệ SVG)
+        const main = series.find((x) => (x.style ?? "line") !== "dots" && x.points.length > 1);
+        if (!main) return null;
+        const lp = main.points[main.points.length - 1];
+        return (
+          <span
+            className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-[var(--surface)]"
+            style={{ left: `${(sx(xIndex.get(lp.x)!) / W) * 100}%`, top: `${(sy(lp.y) / H) * 100}%`, background: main.color }}
+          >
+            <span className="absolute inset-0 animate-ping rounded-full" style={{ background: main.color }} />
+          </span>
+        );
+      })()}
       {hover != null && (
         <div className="pointer-events-none absolute top-0 right-0 rounded-lg bg-surface-2 px-2 py-1 text-xs shadow">
           <div className="font-semibold">{formatDate(xs[hover], { weekday: true })}</div>

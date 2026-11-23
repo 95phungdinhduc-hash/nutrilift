@@ -60,6 +60,7 @@ export interface Phase extends SyncMeta {
 
 export interface Settings {
   theme: "system" | "light" | "dark";
+  accent?: AccentName;
   restTimerSec: number;
   barKg: number;
   /** Các loại bánh tạ có sẵn (kg, một bên). */
@@ -300,3 +301,5 @@ export const SYNC_TABLES = [
   "workouts",
 ] as const;
 export type SyncTable = (typeof SYNC_TABLES)[number];
+
+export type AccentName = "emerald" | "ocean" | "violet" | "sunset" | "rose";

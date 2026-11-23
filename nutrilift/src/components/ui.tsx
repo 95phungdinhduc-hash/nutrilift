@@ -3,6 +3,7 @@ import { animate, AnimatePresence, motion, useDragControls, useMotionValue, useT
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { parseNum } from "../lib/format";
+import { ripple } from "../lib/fx";
 
 export function cx(...c: (string | false | null | undefined)[]): string {
   return c.filter(Boolean).join(" ");
@@ -16,6 +17,7 @@ export function Button({
   className,
   icon,
   children,
+  onPointerDown,
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: BtnVariant; size?: "sm" | "md" | "lg"; icon?: ReactNode }) {
   const v: Record<BtnVariant, string> = {
@@ -32,11 +34,15 @@ export function Button({
   return (
     <button
       className={cx(
-        "inline-flex select-none items-center justify-center rounded-xl font-semibold transition-all duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50",
+        "relative isolate inline-flex select-none items-center justify-center overflow-hidden rounded-xl font-semibold transition-all duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50",
         v[variant],
         s,
         className
       )}
+      onPointerDown={(e) => {
+        ripple(e);
+        onPointerDown?.(e);
+      }}
       {...rest}
     >
       {icon}

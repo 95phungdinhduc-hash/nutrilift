@@ -128,6 +128,46 @@ function SetRow({
   );
 }
 
+/** Vòng tiến độ nhỏ của từng bài; hiện dấu ✓ khi xong. */
+function MiniRing({ done, total }: { done: number; total: number }) {
+  const R = 15;
+  const C = 2 * Math.PI * R;
+  const pct = total ? done / total : 0;
+  const full = total > 0 && done === total;
+  return (
+    <div className="relative mt-0.5 h-9 w-9 shrink-0">
+      <svg viewBox="0 0 36 36" className="h-9 w-9 -rotate-90">
+        <circle cx="18" cy="18" r={R} fill="none" stroke="var(--surface-3)" strokeWidth="3.5" />
+        <motion.circle
+          cx="18"
+          cy="18"
+          r={R}
+          fill="none"
+          stroke={full ? "var(--accent)" : "var(--train)"}
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeDasharray={C}
+          animate={{ strokeDashoffset: C * (1 - pct) }}
+          transition={{ type: "spring", stiffness: 140, damping: 20 }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold tabular">
+        <AnimatePresence mode="wait" initial={false}>
+          {full ? (
+            <motion.span key="ok" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 600, damping: 15 }}>
+              <Check size={15} strokeWidth={3.5} className="text-accent" />
+            </motion.span>
+          ) : (
+            <motion.span key="n" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {done}/{total}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 function ExerciseCard({
   ex,
   idx,
@@ -185,8 +225,9 @@ function ExerciseCard({
   };
 
   return (
-    <Card className={cx("p-3 sm:p-4", allDone && "border-accent/40")}>
-      <div className="mb-2 flex items-start gap-2">
+    <Card className={cx("p-3 transition-colors duration-500 sm:p-4", allDone && "done-sweep border-accent/50")}>
+      <div className="mb-2 flex items-start gap-2.5">
+        <MiniRing done={ex.sets.filter((x) => x.done).length} total={ex.sets.length} />
         <div className="min-w-0 flex-1">
           <button className="text-left" onClick={() => navigate(`/training/exercise/${ex.exerciseId}`)}>
             <div className="text-[17px] leading-tight font-bold">

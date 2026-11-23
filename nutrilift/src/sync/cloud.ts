@@ -38,7 +38,7 @@ export function getCloudConfig(): CloudConfig | undefined {
 }
 
 export function setCloudConfig(c: CloudConfig | undefined) {
-  if (c) localStorage.setItem(CONFIG_KEY, JSON.stringify({ url: c.url.trim().replace(/\/+$/, ""), anonKey: c.anonKey.trim() }));
+  if (c) localStorage.setItem(CONFIG_KEY, JSON.stringify({ url: c.url.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, ""), anonKey: c.anonKey.trim() }));
   else localStorage.removeItem(CONFIG_KEY);
   resetClient();
 }
@@ -246,6 +246,8 @@ export async function testConnection(cfg: CloudConfig): Promise<string | undefin
     const { error } = await c.from(TABLE).select("id").limit(1);
     if (error) {
       if (/does not exist|relation/i.test(error.message)) return "Chưa tạo bảng — hãy chạy file supabase/schema.sql trong SQL Editor";
+      // Bảng tồn tại nhưng khách chưa có quyền đọc: kết nối vẫn đúng, đăng nhập xong sẽ có quyền.
+      if (/permission denied/i.test(error.message)) return undefined;
       return error.message;
     }
     return undefined;

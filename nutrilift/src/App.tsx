@@ -1,4 +1,4 @@
-import { Cloud, CloudOff, Dumbbell, Home, LineChart, RefreshCw, Settings as SettingsIcon, Timer, UtensilsCrossed } from "lucide-react";
+import { Moon, Sun, Cloud, CloudOff, Dumbbell, Home, LineChart, RefreshCw, Settings as SettingsIcon, Timer, UtensilsCrossed } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cx, Toaster } from "./components/ui";
@@ -6,6 +6,8 @@ import { RestTimerBar } from "./components/RestTimerBar";
 import { formatDuration } from "./lib/date";
 import { useActiveWorkout, useNow, useProfile, useSettings } from "./lib/hooks";
 import { Link, match, navigate, useLocation } from "./lib/router";
+import { setKV } from "./db/db";
+import { installPointerFx, withCircleTransition } from "./lib/fx";
 import { startSync, subscribeSyncStatus, syncNow, type SyncStatus } from "./sync/cloud";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
@@ -37,9 +39,13 @@ function useTheme() {
     const apply = () => {
       const dark = settings.theme === "dark" || (settings.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
       document.documentElement.classList.toggle("dark", dark);
-      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0a0f1a" : "#f3f5f8");
+      const accent = settings.accent ?? "emerald";
+      if (accent === "emerald") document.documentElement.removeAttribute("data-accent");
+      else document.documentElement.setAttribute("data-accent", accent);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#060a13" : "#f4f6fb");
       try {
         localStorage.setItem("nl_theme", JSON.stringify(settings.theme));
+        localStorage.setItem("nl_accent", JSON.stringify(accent));
       } catch {
         /* ignore */
       }
@@ -48,7 +54,49 @@ function useTheme() {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
-  }, [settings.theme]);
+  }, [settings.theme, settings.accent]);
+}
+
+/** Nút đổi sáng/tối với hiệu ứng vòng tròn lan ra từ vị trí bấm. */
+function ThemeToggle({ className }: { className?: string }) {
+  const settings = useSettings();
+  const isDark = () => document.documentElement.classList.contains("dark");
+  const [dark, setDark] = useState(isDark);
+  useEffect(() => {
+    const obs = new MutationObserver(() => setDark(isDark()));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <button
+      aria-label={dark ? "Chuyển sang sáng" : "Chuyển sang tối"}
+      title={dark ? "Giao diện sáng" : "Giao diện tối"}
+      className={cx("relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-muted transition hover:bg-surface-2 hover:text-ink active:scale-90", className)}
+      onClick={(e) => {
+        const next = dark ? "light" : "dark";
+        withCircleTransition(
+          () => {
+            document.documentElement.classList.toggle("dark", next === "dark");
+          },
+          e.clientX,
+          e.clientY
+        );
+        setKV("settings", { ...settings, theme: next });
+      }}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={dark ? "moon" : "sun"}
+          initial={{ rotate: -90, scale: 0.3, opacity: 0 }}
+          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+          exit={{ rotate: 90, scale: 0.3, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 24 }}
+        >
+          {dark ? <Moon size={18} /> : <Sun size={18} />}
+        </motion.span>
+      </AnimatePresence>
+    </button>
+  );
 }
 
 function SyncBadge() {
@@ -132,6 +180,7 @@ export default function App() {
 
   useEffect(() => {
     startSync();
+    installPointerFx();
   }, []);
 
   if (!loaded)
@@ -197,8 +246,9 @@ export default function App() {
             );
           })}
         </nav>
-        <div className="mt-auto px-3">
+        <div className="mt-auto flex items-center justify-between px-3">
           <SyncBadge />
+          <ThemeToggle />
         </div>
       </aside>
 
@@ -212,7 +262,10 @@ export default function App() {
                   Nutri<span className="text-gradient">Lift</span>
                 </span>
               </Link>
-              <SyncBadge />
+              <div className="flex items-center gap-1">
+                <SyncBadge />
+                <ThemeToggle />
+              </div>
             </div>
           </header>
         )}

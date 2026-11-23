@@ -21,6 +21,8 @@
           var t = JSON.parse(localStorage.getItem("nl_theme") || '"system"');
           var dark = t === "dark" || (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (dark) document.documentElement.classList.add("dark");
+          var a = JSON.parse(localStorage.getItem("nl_accent") || '"emerald"');
+          if (a && a !== "emerald") document.documentElement.setAttribute("data-accent", a);
         } catch (e) {}
       })();
     </script>

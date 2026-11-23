@@ -5,12 +5,22 @@ import { alive, db, DEFAULT_GOALS, DEFAULT_PROFILE, putMany, setKV } from "../db
 import type { BmrFormula, Goals, Profile, Settings } from "../db/types";
 import { deleteAllData } from "../lib/actions";
 import { formatTime } from "../lib/date";
+import { withCircleTransition } from "../lib/fx";
+import type { AccentName } from "../db/types";
 import { fmt } from "../lib/format";
 import { useGoals, useProfile, useSettings, useTargets, useToday } from "../lib/hooks";
 import { navigate, useLocation } from "../lib/router";
 import { ACTIVITY_LEVELS } from "../nutrition/calc";
 import { backupFileName, downloadJson, exportBackup, importBackup, validateBackup } from "../sync/backup";
 import { getCloudConfig, setCloudConfig, signIn, signOut, signUp, startSync, subscribeSyncStatus, syncNow, testConnection, type SyncStatus } from "../sync/cloud";
+
+const ACCENTS: { id: AccentName; label: string; c1: string; c2: string }[] = [
+  { id: "emerald", label: "Ngọc", c1: "#10b981", c2: "#14b8a6" },
+  { id: "ocean", label: "Đại dương", c1: "#0ea5e9", c2: "#6366f1" },
+  { id: "violet", label: "Tím", c1: "#8b5cf6", c2: "#d946ef" },
+  { id: "sunset", label: "Hoàng hôn", c1: "#f59e0b", c2: "#ef4444" },
+  { id: "rose", label: "Hồng", c1: "#ec4899", c2: "#f43f5e" },
+];
 
 type Tab = "profile" | "goals" | "training" | "sync" | "data";
 
@@ -517,13 +527,51 @@ function DataSection() {
         <SectionTitle>Giao diện</SectionTitle>
         <Segmented
           value={s.theme}
-          onChange={(v) => saveS({ theme: v })}
+          onChange={(v) => {
+            const dark = v === "dark" || (v === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            withCircleTransition(() => document.documentElement.classList.toggle("dark", dark), window.innerWidth / 2, window.innerHeight / 2);
+            saveS({ theme: v });
+          }}
           options={[
             { value: "system", label: "Theo hệ thống" },
             { value: "light", label: "Sáng" },
             { value: "dark", label: "Tối" },
           ]}
         />
+        <div className="pt-2 text-sm font-medium">Màu chủ đạo</div>
+        <div className="grid grid-cols-5 gap-2">
+          {ACCENTS.map((a) => {
+            const active = (s.accent ?? "emerald") === a.id;
+            return (
+              <button
+                key={a.id}
+                aria-label={a.label}
+                title={a.label}
+                onClick={(e) => {
+                  withCircleTransition(
+                    () => {
+                      if (a.id === "emerald") document.documentElement.removeAttribute("data-accent");
+                      else document.documentElement.setAttribute("data-accent", a.id);
+                    },
+                    e.clientX,
+                    e.clientY
+                  );
+                  saveS({ accent: a.id });
+                }}
+                className={cx(
+                  "group flex flex-col items-center gap-1.5 rounded-2xl p-2 text-[11px] font-semibold transition",
+                  active ? "bg-surface-2 text-ink ring-2 ring-accent" : "text-muted hover:bg-surface-2"
+                )}
+              >
+                <span
+                  className="h-9 w-9 rounded-full shadow-[0_6px_16px_-6px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
+                  style={{ background: `linear-gradient(135deg, ${a.c1}, ${a.c2})` }}
+                />
+                {a.label}
+              </button>
+            );
+          })}
+        </div>
       </Card>
       <Card className="space-y-2 text-sm">
         <SectionTitle>Giới thiệu</SectionTitle>
