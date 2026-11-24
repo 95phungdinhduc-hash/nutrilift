@@ -429,7 +429,7 @@ function AiSection() {
           Khoá nằm trong Secrets của Supabase, dùng chung cho mọi thiết bị đã đăng nhập. Cần cài hàm <code>food-vision</code> một lần — xem mục “AI chụp món ăn” trong HUONG_DAN.md.
         </p>
       )}
-      <TextField label="Model" hint="để trống = gemini-flash-latest" placeholder="gemini-flash-latest" value={model} onChange={(e) => setModel(e.target.value)} onBlur={() => saveAi({ model: model.trim() || undefined })} />
+      <TextField label="Model" hint="để trống = gemini-flash-lite-latest" placeholder="gemini-flash-lite-latest" value={model} onChange={(e) => setModel(e.target.value)} onBlur={() => saveAi({ model: model.trim() || undefined })} />
       <div className="flex items-center gap-2">
         <Button
           size="sm"

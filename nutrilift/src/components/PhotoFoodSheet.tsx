@@ -28,6 +28,7 @@ export function PhotoFoodSheet({ open, onClose, date, meal: initialMeal, onLogge
   const [error, setError] = useState<string | null>(null);
   const [meal, setMeal] = useState<MealType>(initialMeal);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState("");
 
   const configured = ai.mode === "supabase" || !!getGeminiKey();
 
@@ -59,7 +60,7 @@ export function PhotoFoodSheet({ open, onClose, date, meal: initialMeal, onLogge
     setStage("loading");
     setError(null);
     try {
-      const r = await analyzeFood({ imageBase64: img?.base64, mimeType: img?.mimeType, text }, { mode: ai.mode, model: ai.model });
+      const r = await analyzeFood({ imageBase64: img?.base64, mimeType: img?.mimeType, text }, { mode: ai.mode, model: ai.model, onStatus: setStatus });
       const d = toDrafts(r, myFoods);
       setDrafts(d);
       setNote(r.note);
@@ -178,7 +179,7 @@ export function PhotoFoodSheet({ open, onClose, date, meal: initialMeal, onLogge
                   />
                   <div className="absolute inset-x-0 bottom-4 flex justify-center">
                     <span className="flex items-center gap-2 rounded-full bg-slate-950/70 px-4 py-2 text-sm font-semibold text-white">
-                      <Sparkles size={15} className="animate-pulse" /> Gemini đang nhận diện món ăn…
+                      <Sparkles size={15} className="animate-pulse" /> {status || "Gemini đang nhận diện món ăn…"}
                     </span>
                   </div>
                 </div>

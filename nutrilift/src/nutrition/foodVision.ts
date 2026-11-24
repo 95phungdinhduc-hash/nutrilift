@@ -6,8 +6,16 @@ import { matchScore } from "../lib/text";
 import { scaleNutrients } from "./calc";
 import { searchLocal } from "./foodSearch";
 
-export const DEFAULT_GEMINI_MODEL = "gemini-flash-latest";
-const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+export const DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest";
+/** Thứ tự dự phòng khi model đang quá tải / hết lượt / không tồn tại. */
+export const FALLBACK_MODELS = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
+
+/** Lỗi tạm thời đáng thử lại / đổi model: quá tải, hết lượt, lỗi máy chủ, model không có. */
+export function isRetryable(status: number, msg = ""): boolean {
+  return [404, 429, 500, 502, 503, 504].includes(status) || /overload|high demand|unavailable|exhausted|quota/i.test(msg);
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const KEY_STORAGE = "nl_gemini_key";
 
 export function getGeminiKey(): string {
@@ -199,20 +207,37 @@ export async function prepareImage(file: Blob, maxSide = 1024): Promise<{ base64
 }
 
 // ---------- Gọi API ----------
-async function callDirect(body: unknown, key: string, model: string): Promise<any> {
+async function callDirect(body: unknown, key: string, model: string, onStatus?: (m: string) => void): Promise<any> {
   const models = [model, ...FALLBACK_MODELS.filter((m) => m !== model)];
   let lastErr: Error | undefined;
   for (const m of models) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) return data;
-    const msg = data?.error?.message ?? `HTTP ${res.status}`;
-    lastErr = new Error(res.status === 400 && /API key/i.test(msg) ? "Khoá Gemini không hợp lệ" : res.status === 429 ? "Hết hạn mức miễn phí tạm thời — thử lại sau ít phút" : msg);
-    if (res.status !== 404) break; // chỉ thử model khác khi model không tồn tại
+    for (let attempt = 0; attempt < 2; attempt++) {
+      onStatus?.(attempt ? `${m} đang bận, thử lại…` : m === model ? "" : `Chuyển sang ${m}…`);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(body),
+      }).catch(() => null);
+      if (!res) {
+        lastErr = new Error("Không kết nối được Gemini — kiểm tra mạng");
+        break;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return data;
+      const msg: string = data?.error?.message ?? `HTTP ${res.status}`;
+      if (res.status === 400 && /API key/i.test(msg)) throw new Error("Khoá Gemini không hợp lệ");
+      if (res.status === 403) throw new Error("Khoá Gemini bị từ chối (403) — kiểm tra khoá trong AI Studio");
+      lastErr = new Error(
+        res.status === 429 ? "Hết lượt miễn phí tạm thời của mọi model — thử lại sau ít phút" : res.status === 503 ? "Gemini đang quá tải — thử lại sau ít phút" : msg
+      );
+      if (!isRetryable(res.status, msg)) throw lastErr;
+      // Quá tải (503): đợi một chút rồi thử lại cùng model; hết lượt/không tồn tại: sang model khác ngay
+      if (res.status === 503 && attempt === 0) {
+        await sleep(1500);
+        continue;
+      }
+      break;
+    }
   }
   throw lastErr ?? new Error("Không gọi được Gemini");
 }
@@ -240,7 +265,7 @@ async function callSupabase(body: unknown, model: string): Promise<any> {
 
 export async function analyzeFood(
   input: { imageBase64?: string; mimeType?: string; text?: string },
-  opts: { mode: "key" | "supabase"; model?: string }
+  opts: { mode: "key" | "supabase"; model?: string; onStatus?: (m: string) => void }
 ): Promise<VisionResult> {
   const body = buildGeminiRequest(input);
   const model = opts.model?.trim() || DEFAULT_GEMINI_MODEL;
@@ -249,7 +274,7 @@ export async function analyzeFood(
   else {
     const key = getGeminiKey();
     if (!key) throw new Error("Chưa nhập khoá Gemini (Cài đặt → Dữ liệu & khác → AI nhận diện món ăn)");
-    resp = await callDirect(body, key, model);
+    resp = await callDirect(body, key, model, opts.onStatus);
   }
   return parseGeminiResponse(resp);
 }

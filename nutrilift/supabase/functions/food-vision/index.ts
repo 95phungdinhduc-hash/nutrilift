@@ -2,7 +2,8 @@
 // Khoá GEMINI_API_KEY nằm trong Secrets của Supabase — không bao giờ gửi xuống trình duyệt.
 // Chỉ người dùng đã đăng nhập mới gọi được (Supabase kiểm tra JWT mặc định).
 const ALLOWED_MODELS = /^gemini-[a-z0-9.\-]+$/i;
-const FALLBACK = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const FALLBACK = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
+const RETRY = [404, 429, 500, 502, 503, 504];
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -27,20 +28,29 @@ Deno.serve(async (req) => {
     return json(400, { error: "Dữ liệu không hợp lệ" });
   }
   const request = payload?.request;
-  const model = String(payload?.model || "gemini-flash-latest");
+  const model = String(payload?.model || "gemini-flash-lite-latest");
   if (!request?.contents || !ALLOWED_MODELS.test(model)) return json(400, { error: "Yêu cầu không hợp lệ" });
   // Giới hạn kích thước (~6 MB) để tránh lạm dụng
   if (JSON.stringify(request).length > 6_000_000) return json(413, { error: "Ảnh quá lớn" });
 
+  let last = { status: 502, error: "Không gọi được Gemini" };
   for (const m of [model, ...FALLBACK.filter((x) => x !== model)]) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify(request),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) return json(200, data);
-    if (res.status !== 404) return json(res.status, { error: data?.error?.message ?? `Gemini HTTP ${res.status}` });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(request),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return json(200, data);
+      last = { status: res.status, error: data?.error?.message ?? `Gemini HTTP ${res.status}` };
+      if (!RETRY.includes(res.status)) return json(res.status, { error: last.error });
+      if (res.status === 503 && attempt === 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
+      }
+      break;
+    }
   }
-  return json(404, { error: "Không tìm thấy model Gemini phù hợp" });
+  return json(last.status, { error: last.error });
 });

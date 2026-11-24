@@ -54,3 +54,42 @@ describe("Gemini nhận diện món ăn", () => {
     expect(draftNutrients({ ...d[0], useMatch: false }).kcal).toBeCloseTo(270, 0);
   });
 });
+
+import { vi } from "vitest";
+import { analyzeFood, isRetryable } from "../src/nutrition/foodVision";
+
+describe("tự thử lại & đổi model khi Gemini quá tải", () => {
+  it("phân loại lỗi tạm thời", () => {
+    expect(isRetryable(503)).toBe(true);
+    expect(isRetryable(429)).toBe(true);
+    expect(isRetryable(400, "This model is currently experiencing high demand")).toBe(true);
+    expect(isRetryable(400, "API key not valid")).toBe(false);
+  });
+
+  it("503 ở model đầu → thử lại → chuyển model kế tiếp và thành công", async () => {
+    const store: Record<string, string> = { nl_gemini_key: "AIza-x" };
+    vi.stubGlobal("localStorage", { getItem: (k: string) => store[k] ?? null, setItem: () => {}, removeItem: () => {} });
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        calls.push(url.split("/models/")[1].split(":")[0]);
+        if (calls.length <= 2)
+          return { ok: false, status: 503, json: async () => ({ error: { message: "This model is currently experiencing high demand." } }) };
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify({ items: [{ name: "Phở bò", grams: 500, kcal: 450, protein: 25, carbs: 55, fat: 12 }] }) }] } }] }),
+        };
+      })
+    );
+    vi.useFakeTimers();
+    const p = analyzeFood({ text: "1 tô phở" }, { mode: "key" });
+    await vi.runAllTimersAsync();
+    const r = await p;
+    vi.useRealTimers();
+    expect(r.items[0].name).toBe("Phở bò");
+    expect(calls).toEqual(["gemini-flash-lite-latest", "gemini-flash-lite-latest", "gemini-flash-latest"]);
+    vi.unstubAllGlobals();
+  });
+});
